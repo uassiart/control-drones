@@ -98,9 +98,14 @@ export default function Drones() {
   }, [])
 
   const cargarDepartamentos = async () => {
-    const { data, error } = await supabase.from('departamentos').select('*').order('nombre')
-    if (!error) setDepartamentos(data)
+  const { data, error } = await supabase.from('departamentos').select('*').order('nombre')
+  if (error) {
+    console.error('Error cargando departamentos:', error)
+  } else {
+    console.log('Departamentos cargados:', data)
+    setDepartamentos(data)
   }
+}
 
   const cargarDrones = async () => {
     setLoading(true)
