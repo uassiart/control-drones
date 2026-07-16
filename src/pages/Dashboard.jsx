@@ -1,8 +1,23 @@
 import { useAuth } from '../context/AuthContext'
 import { Link } from 'react-router-dom'
+import { enviarCorreo } from '../lib/email'
 
 export default function Dashboard() {
   const { user, signOut } = useAuth()
+
+  const probarCorreo = async () => {
+    try {
+      await enviarCorreo(
+        'uassiart@gmail.com',
+        'Prueba desde Control Drones',
+        '<h1>¡Hola!</h1><p>Este es un correo de prueba desde tu app de Control de Drones.</p>'
+      )
+      alert('✅ Correo enviado correctamente. Revisa tu bandeja de entrada (y spam).')
+    } catch (error) {
+      alert('❌ Error al enviar correo: ' + error.message)
+      console.error(error)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#f1f5f9] p-8">
@@ -28,10 +43,21 @@ export default function Dashboard() {
               <h3 className="font-bold text-[#0B2D5C]">🛸 Drones</h3>
               <p className="text-sm text-gray-600">Gestionar flota de drones</p>
             </Link>
-            <Link to="/reportes" className="bg-purple-50 p-4 rounded-lg hover:bg-purple-100 text-center border-l-4 border-[#0B2D5C]">
+            <div className="bg-purple-50 p-4 rounded-lg text-center border-l-4 border-[#0B2D5C]">
               <h3 className="font-bold text-[#0B2D5C]">📊 Reportes</h3>
               <p className="text-sm text-gray-600">Ver estadísticas y reportes</p>
-            </Link>
+            </div>
+          </div>
+
+          {/* ========== BOTÓN DE PRUEBA DE CORREOS ========== */}
+          <div className="mt-8 p-4 border-2 border-dashed border-gray-300 rounded-lg">
+            <p className="text-sm text-gray-600 mb-2">🧪 Prueba de envío de correos con Resend</p>
+            <button
+              onClick={probarCorreo}
+              className="bg-[#0B2D5C] hover:bg-[#1a3d7c] text-white font-semibold px-4 py-2 rounded-lg transition"
+            >
+              Enviar correo de prueba
+            </button>
           </div>
         </div>
       </div>
