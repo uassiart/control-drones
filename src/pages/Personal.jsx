@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import * as XLSX from 'xlsx'
 
 // ============================================================
-// LISTAS DE REGIONES Y UNIDADES (mismas que en drones)
+// LISTAS DE REGIONES Y UNIDADES
 // ============================================================
 const REGIONES_UNIDADES = {
   'REMSA': ['MEBOG', 'MESOA', 'COSOC', 'COENO'],
@@ -33,7 +33,6 @@ const REGIONES = Object.keys(REGIONES_UNIDADES)
 export default function Personal() {
   const { user } = useAuth()
 
-  // Estados
   const [personal, setPersonal] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -46,13 +45,12 @@ export default function Personal() {
   const [importing, setImporting] = useState(false)
   const fileInputRef = useRef(null)
 
-  // Formulario
   const [formData, setFormData] = useState({
+    grado: '',          // <-- PRIMERO
     nombre: '',
     cedula: '',
     email: '',
     telefono: '',
-    grado: '',
     cargo: '',
     region: '',
     unidad: '',
@@ -60,7 +58,6 @@ export default function Personal() {
     activo: true
   })
 
-  // Validación de formulario
   const [formErrors, setFormErrors] = useState({})
 
   // ============================================================
@@ -87,8 +84,8 @@ export default function Personal() {
     e.preventDefault()
     setFormErrors({})
 
-    // Validaciones básicas
     const errors = {}
+    if (!formData.grado.trim()) errors.grado = 'El grado es obligatorio'
     if (!formData.nombre.trim()) errors.nombre = 'El nombre es obligatorio'
     if (!formData.cedula.trim()) errors.cedula = 'La cédula es obligatoria'
     if (!formData.email.trim()) errors.email = 'El email es obligatorio'
@@ -158,11 +155,11 @@ export default function Personal() {
   const editarPersonal = (item) => {
     setEditing(item.id)
     setFormData({
+      grado: item.grado || '',
       nombre: item.nombre || '',
       cedula: item.cedula || '',
       email: item.email || '',
       telefono: item.telefono || '',
-      grado: item.grado || '',
       cargo: item.cargo || '',
       region: item.region || '',
       unidad: item.unidad || '',
@@ -177,11 +174,11 @@ export default function Personal() {
     setShowForm(false)
     setEditing(null)
     setFormData({
+      grado: '',
       nombre: '',
       cedula: '',
       email: '',
       telefono: '',
-      grado: '',
       cargo: '',
       region: '',
       unidad: '',
@@ -240,13 +237,12 @@ export default function Personal() {
     let errorCount = 0
 
     for (const row of excelData) {
-      // Mapeo de columnas esperadas (puedes adaptar según tu Excel)
       const item = {
+        grado: row['Grado'] || row['grado'] || '',
         nombre: row['Nombre'] || row['nombre'] || '',
         cedula: String(row['Cédula'] || row['cedula'] || ''),
         email: row['Email'] || row['email'] || '',
         telefono: row['Teléfono'] || row['telefono'] || '',
-        grado: row['Grado'] || row['grado'] || '',
         cargo: row['Cargo'] || row['cargo'] || '',
         region: row['Región'] || row['region'] || '',
         unidad: row['Unidad'] || row['unidad'] || '',
@@ -254,7 +250,6 @@ export default function Personal() {
         activo: true
       }
 
-      // Validar campos obligatorios
       if (!item.nombre || !item.cedula || !item.email) {
         errorCount++
         continue
@@ -279,7 +274,7 @@ export default function Personal() {
   }
 
   // ============================================================
-  // FILTROS Y BÚSQUEDA
+  // FILTROS
   // ============================================================
   const personalFiltrado = personal.filter(item => {
     const matchSearch =
@@ -302,7 +297,7 @@ export default function Personal() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37] mx-auto"></div>
           <p className="mt-4 text-gray-600">Cargando personal...</p>
         </div>
       </div>
@@ -310,7 +305,7 @@ export default function Personal() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen bg-[#f1f5f9] p-4 md:p-6 lg:p-8">
 
       {/* ==================== NOTIFICACIÓN ==================== */}
       {notificacion && (
@@ -323,16 +318,18 @@ export default function Personal() {
         </div>
       )}
 
-      {/* ==================== HEADER ==================== */}
+      {/* ==================== HEADER INSTITUCIONAL ==================== */}
       <div className="max-w-7xl mx-auto">
-        <div className="bg-gradient-to-r from-blue-900 to-blue-700 rounded-2xl shadow-xl p-6 md:p-8 text-white mb-8">
+        <div className="bg-[#0B2D5C] rounded-2xl shadow-xl p-6 md:p-8 text-white mb-8 border-b-4 border-[#D4AF37]">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold flex items-center gap-3">
-                <span className="bg-yellow-500 text-blue-900 p-2 rounded-lg text-2xl">👤</span>
-                Gestión de Personal
-              </h1>
-              <p className="text-blue-200 mt-1 text-sm md:text-base">
+              <div className="flex items-center gap-3 mb-1">
+                <span className="text-3xl">👤</span>
+                <h1 className="text-3xl md:text-4xl font-bold tracking-wide">
+                  Gestión de Personal
+                </h1>
+              </div>
+              <p className="text-blue-200 text-sm md:text-base">
                 Administre los responsables, operadores y jefes de la unidad
               </p>
             </div>
@@ -343,13 +340,13 @@ export default function Personal() {
                   setShowForm(true)
                   window.scrollTo({ top: 0, behavior: 'smooth' })
                 }}
-                className="bg-yellow-500 hover:bg-yellow-400 text-blue-900 font-semibold px-4 py-2 rounded-lg transition flex items-center gap-2"
+                className="bg-[#D4AF37] hover:bg-[#c5a032] text-[#0B2D5C] font-bold px-4 py-2 rounded-lg transition flex items-center gap-2 shadow-md"
               >
                 <span>➕</span> Nuevo
               </button>
               <button
                 onClick={() => setShowExcelModal(true)}
-                className="bg-green-600 hover:bg-green-500 text-white font-semibold px-4 py-2 rounded-lg transition flex items-center gap-2"
+                className="bg-green-700 hover:bg-green-800 text-white font-semibold px-4 py-2 rounded-lg transition flex items-center gap-2 shadow-md"
               >
                 <span>📊</span> Carga Masiva
               </button>
@@ -359,9 +356,9 @@ export default function Personal() {
 
         {/* ==================== FORMULARIO ==================== */}
         {showForm && (
-          <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-8 border-l-4 border-yellow-500">
+          <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-8 border-l-4 border-[#D4AF37]">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-blue-900">
+              <h2 className="text-2xl font-bold text-[#0B2D5C]">
                 {editing ? '✏️ Editar Personal' : '➕ Nuevo Personal'}
               </h2>
               <button
@@ -374,6 +371,23 @@ export default function Personal() {
 
             <form onSubmit={guardarPersonal}>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* ===== GRADO (PRIMERO) ===== */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Grado <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent ${
+                      formErrors.grado ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    value={formData.grado}
+                    onChange={(e) => setFormData({ ...formData, grado: e.target.value })}
+                    placeholder="Mayor, Capitán, Teniente..."
+                  />
+                  {formErrors.grado && <p className="text-red-500 text-xs mt-1">{formErrors.grado}</p>}
+                </div>
+
                 {/* Nombre */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -381,7 +395,7 @@ export default function Personal() {
                   </label>
                   <input
                     type="text"
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent ${
                       formErrors.nombre ? 'border-red-500' : 'border-gray-300'
                     }`}
                     value={formData.nombre}
@@ -397,7 +411,7 @@ export default function Personal() {
                   </label>
                   <input
                     type="text"
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent ${
                       formErrors.cedula ? 'border-red-500' : 'border-gray-300'
                     }`}
                     value={formData.cedula}
@@ -413,7 +427,7 @@ export default function Personal() {
                   </label>
                   <input
                     type="email"
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent ${
                       formErrors.email ? 'border-red-500' : 'border-gray-300'
                     }`}
                     value={formData.email}
@@ -427,21 +441,9 @@ export default function Personal() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
                   <input
                     type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent"
                     value={formData.telefono}
                     onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
-                  />
-                </div>
-
-                {/* Grado */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Grado</label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    value={formData.grado}
-                    onChange={(e) => setFormData({ ...formData, grado: e.target.value })}
-                    placeholder="Mayor, Capitán, etc."
                   />
                 </div>
 
@@ -450,7 +452,7 @@ export default function Personal() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Cargo</label>
                   <input
                     type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent"
                     value={formData.cargo}
                     onChange={(e) => setFormData({ ...formData, cargo: e.target.value })}
                     placeholder="Comandante, Jefe de Sección..."
@@ -463,7 +465,7 @@ export default function Personal() {
                     Región / Especialidad <span className="text-red-500">*</span>
                   </label>
                   <select
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent ${
                       formErrors.region ? 'border-red-500' : 'border-gray-300'
                     }`}
                     value={formData.region}
@@ -485,7 +487,7 @@ export default function Personal() {
                     Unidad <span className="text-red-500">*</span>
                   </label>
                   <select
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent ${
                       formErrors.unidad ? 'border-red-500' : 'border-gray-300'
                     }`}
                     value={formData.unidad}
@@ -507,7 +509,7 @@ export default function Personal() {
                       type="checkbox"
                       checked={formData.es_jefe}
                       onChange={(e) => setFormData({ ...formData, es_jefe: e.target.checked })}
-                      className="w-4 h-4 text-blue-600 rounded"
+                      className="w-4 h-4 text-[#D4AF37] rounded focus:ring-[#D4AF37]"
                     />
                     Es Jefe de Grupo
                   </label>
@@ -516,7 +518,7 @@ export default function Personal() {
                       type="checkbox"
                       checked={formData.activo}
                       onChange={(e) => setFormData({ ...formData, activo: e.target.checked })}
-                      className="w-4 h-4 text-blue-600 rounded"
+                      className="w-4 h-4 text-[#D4AF37] rounded focus:ring-[#D4AF37]"
                     />
                     Activo
                   </label>
@@ -526,7 +528,7 @@ export default function Personal() {
               <div className="flex flex-wrap gap-3 mt-6 pt-4 border-t border-gray-200">
                 <button
                   type="submit"
-                  className="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-6 py-2 rounded-lg transition"
+                  className="bg-[#0B2D5C] hover:bg-[#1a3d7c] text-white font-semibold px-6 py-2 rounded-lg transition shadow-md"
                 >
                   {editing ? 'Actualizar' : 'Guardar'}
                 </button>
@@ -542,13 +544,13 @@ export default function Personal() {
           </div>
         )}
 
-        {/* ==================== FILTROS Y BÚSQUEDA ==================== */}
+        {/* ==================== FILTROS ==================== */}
         <div className="bg-white rounded-2xl shadow-lg p-4 md:p-6 mb-6 flex flex-col md:flex-row md:items-center gap-4">
           <div className="flex-1">
             <input
               type="text"
               placeholder="🔍 Buscar por nombre, cédula o email..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -556,7 +558,7 @@ export default function Personal() {
           <div className="flex items-center gap-3">
             <span className="text-sm text-gray-600">Filtrar:</span>
             <select
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D4AF37]"
               value={filterJefe}
               onChange={(e) => setFilterJefe(e.target.value)}
             >
@@ -566,20 +568,20 @@ export default function Personal() {
             </select>
           </div>
           <div className="text-sm text-gray-600">
-            Total: <span className="font-bold text-blue-800">{personalFiltrado.length}</span>
+            Total: <span className="font-bold text-[#0B2D5C]">{personalFiltrado.length}</span>
           </div>
         </div>
 
-        {/* ==================== TABLA DE PERSONAL ==================== */}
+        {/* ==================== TABLA ==================== */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-blue-900 text-white">
+              <thead className="bg-[#0B2D5C] text-white">
                 <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Grado</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Nombre</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider hidden sm:table-cell">Cédula</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider hidden md:table-cell">Email</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider hidden lg:table-cell">Grado</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">Región/Unidad</th>
                   <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Rol</th>
                   <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Estado</th>
@@ -595,21 +597,20 @@ export default function Personal() {
                   </tr>
                 ) : (
                   personalFiltrado.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50 transition">
+                    <tr key={item.id} className="hover:bg-[#f0f4ff] transition">
+                      <td className="px-4 py-3 font-medium text-[#0B2D5C]">{item.grado || '-'}</td>
                       <td className="px-4 py-3">
                         <div className="font-medium text-gray-900">{item.nombre}</div>
                         <div className="text-xs text-gray-500 sm:hidden">{item.cedula}</div>
-                        <div className="text-xs text-gray-500 sm:hidden">{item.email}</div>
                       </td>
                       <td className="px-4 py-3 hidden sm:table-cell">{item.cedula}</td>
                       <td className="px-4 py-3 hidden md:table-cell text-sm">{item.email}</td>
-                      <td className="px-4 py-3 hidden lg:table-cell text-sm">{item.grado || '-'}</td>
                       <td className="px-4 py-3 hidden xl:table-cell text-sm">
                         {item.region} / {item.unidad}
                       </td>
                       <td className="px-4 py-3 text-center">
                         {item.es_jefe ? (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#D4AF37] text-[#0B2D5C]">
                             ⭐ Jefe
                           </span>
                         ) : (
@@ -633,7 +634,7 @@ export default function Personal() {
                         <div className="flex flex-wrap justify-center gap-1">
                           <button
                             onClick={() => editarPersonal(item)}
-                            className="text-blue-600 hover:text-blue-800 p-1"
+                            className="text-[#0B2D5C] hover:text-[#D4AF37] p-1 transition"
                             title="Editar"
                           >
                             ✏️
@@ -641,7 +642,7 @@ export default function Personal() {
                           {item.activo ? (
                             <button
                               onClick={() => desactivarPersonal(item.id)}
-                              className="text-red-600 hover:text-red-800 p-1"
+                              className="text-red-600 hover:text-red-800 p-1 transition"
                               title="Desactivar"
                             >
                               🔴
@@ -649,7 +650,7 @@ export default function Personal() {
                           ) : (
                             <button
                               onClick={() => activarPersonal(item.id)}
-                              className="text-green-600 hover:text-green-800 p-1"
+                              className="text-green-600 hover:text-green-800 p-1 transition"
                               title="Activar"
                             >
                               🟢
@@ -668,12 +669,14 @@ export default function Personal() {
           </div>
         </div>
 
-        {/* ==================== MODAL DE CARGA MASIVA ==================== */}
+        {/* ==================== MODAL EXCEL ==================== */}
         {showExcelModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center">
-                <h2 className="text-xl font-bold text-blue-900">📊 Carga Masiva desde Excel</h2>
+              <div className="sticky top-0 bg-[#0B2D5C] text-white p-4 flex justify-between items-center rounded-t-2xl">
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <span>📊</span> Carga Masiva desde Excel
+                </h2>
                 <button
                   onClick={() => {
                     setShowExcelModal(false)
@@ -681,25 +684,32 @@ export default function Personal() {
                     setExcelData([])
                     if (fileInputRef.current) fileInputRef.current.value = ''
                   }}
-                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                  className="text-white hover:text-[#D4AF37] text-2xl"
                 >
                   ✕
                 </button>
               </div>
 
               <div className="p-6">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                  <h3 className="font-semibold text-blue-800">📋 Instrucciones</h3>
-                  <ul className="text-sm text-blue-700 list-disc pl-4 mt-2 space-y-1">
+                <div className="bg-[#f0f4ff] border border-[#D4AF37] rounded-lg p-4 mb-6">
+                  <h3 className="font-semibold text-[#0B2D5C]">📋 Instrucciones</h3>
+                  <ul className="text-sm text-gray-700 list-disc pl-4 mt-2 space-y-1">
                     <li>El archivo debe ser <strong>.xlsx</strong> o <strong>.xls</strong></li>
-                    <li>Columnas esperadas: <strong>Nombre, Cédula, Email, Teléfono, Grado, Cargo, Región, Unidad, Es Jefe</strong></li>
+                    <li>Columnas esperadas: <strong>Grado, Nombre, Cédula, Email, Teléfono, Cargo, Región, Unidad, Es Jefe</strong></li>
                     <li>La columna "Es Jefe" puede ser <strong>SI/NO</strong> o <strong>TRUE/FALSE</strong></li>
                     <li>Región y Unidad deben coincidir con los valores del sistema</li>
-                    <li>Puedes descargar un <a href="#" className="text-blue-600 underline" onClick={() => descargarPlantillaExcel()}>archivo de ejemplo aquí</a></li>
+                    <li>
+                      <button
+                        onClick={descargarPlantillaExcel}
+                        className="text-[#0B2D5C] font-semibold underline hover:text-[#D4AF37]"
+                      >
+                        📥 Descargar plantilla de ejemplo
+                      </button>
+                    </li>
                   </ul>
                 </div>
 
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#D4AF37] transition">
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -764,8 +774,8 @@ export default function Personal() {
                   <button
                     onClick={importarDesdeExcel}
                     disabled={excelData.length === 0 || importing}
-                    className={`px-6 py-2 bg-green-600 text-white rounded-lg font-semibold transition ${
-                      excelData.length === 0 || importing ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'
+                    className={`px-6 py-2 bg-[#0B2D5C] text-white rounded-lg font-semibold transition ${
+                      excelData.length === 0 || importing ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#1a3d7c]'
                     }`}
                   >
                     {importing ? 'Importando...' : 'Importar Datos'}
@@ -786,22 +796,22 @@ export default function Personal() {
 function descargarPlantillaExcel() {
   const plantilla = [
     {
+      'Grado': 'Mayor',
       'Nombre': 'Carlos Pérez',
       'Cédula': '1234567890',
       'Email': 'carlos.perez@ejemplo.com',
       'Teléfono': '3101234567',
-      'Grado': 'Mayor',
       'Cargo': 'Comandante',
       'Región': 'REMSA',
       'Unidad': 'MEBOG',
       'Es Jefe': 'SI'
     },
     {
+      'Grado': 'Capitán',
       'Nombre': 'Ana Gómez',
       'Cédula': '9876543210',
       'Email': 'ana.gomez@ejemplo.com',
       'Teléfono': '3107654321',
-      'Grado': 'Capitán',
       'Cargo': 'Jefe de Sección',
       'Región': 'REGIÓN 5',
       'Unidad': 'MEBUC',
