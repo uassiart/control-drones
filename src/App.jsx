@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Registro from './pages/Registro'
 import Dashboard from './pages/Dashboard'
+import Personal from './pages/Personal'  // <-- NUEVA IMPORTACIÓN
 
 function App() {
   return (
@@ -15,6 +16,11 @@ function App() {
           <Route path="/" element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/personal" element={   // <-- NUEVA RUTA
+            <ProtectedRoute>
+              <Personal />
             </ProtectedRoute>
           } />
         </Routes>
