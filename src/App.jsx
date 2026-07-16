@@ -1,10 +1,11 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
+import Layout from './components/layout/Layout'
 import Login from './pages/Login'
 import Registro from './pages/Registro'
 import Dashboard from './pages/Dashboard'
-import Personal from './pages/Personal'  // <-- NUEVA IMPORTACIÓN
+import Personal from './pages/Personal'
 
 function App() {
   return (
@@ -15,12 +16,16 @@ function App() {
           <Route path="/registro" element={<Registro />} />
           <Route path="/" element={
             <ProtectedRoute>
-              <Dashboard />
+              <Layout>
+                <Dashboard />
+              </Layout>
             </ProtectedRoute>
           } />
-          <Route path="/personal" element={   // <-- NUEVA RUTA
+          <Route path="/personal" element={
             <ProtectedRoute>
-              <Personal />
+              <Layout>
+                <Personal />
+              </Layout>
             </ProtectedRoute>
           } />
         </Routes>

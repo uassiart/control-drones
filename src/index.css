@@ -1,3 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: #003087;
+    --color-primary-light: #1a4d8f;
+    --color-secondary: #00a650;
+    --color-danger: #e3000f;
+    --color-warning: #f9b81b;
+    --color-background: #f5f7fa;
+  }
+  
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f5f7fa;
+    color: #1a1a2e;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+  }
+}
