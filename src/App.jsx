@@ -6,6 +6,7 @@ import Login from './pages/Login'
 import Registro from './pages/Registro'
 import Dashboard from './pages/Dashboard'
 import Personal from './pages/Personal'
+import Drones from './pages/Drones'
 
 function App() {
   return (
@@ -28,6 +29,11 @@ function App() {
               </Layout>
             </ProtectedRoute>
           } />
+          <Route path="/drones" element={
+  <ProtectedRoute>
+    <Drones />
+  </ProtectedRoute>
+} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
