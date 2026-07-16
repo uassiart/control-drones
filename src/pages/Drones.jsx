@@ -60,7 +60,6 @@ export default function Drones() {
   const [importing, setImporting] = useState(false)
   const fileInputRef = useRef(null)
 
-  // Catálogos
   const [departamentos, setDepartamentos] = useState([])
 
   const [formData, setFormData] = useState({
@@ -74,7 +73,7 @@ export default function Drones() {
     unidad: '',
     especialidad: '',
     departamento: '',
-    municipio: '',        // ahora es texto libre
+    municipio: '',
     clase: '',
     clase2: '',
     matricula: '',
@@ -90,7 +89,7 @@ export default function Drones() {
   const [formErrors, setFormErrors] = useState({})
 
   // ============================================================
-  // CARGAR CATÁLOGOS
+  // CARGAR DATOS
   // ============================================================
   useEffect(() => {
     cargarDepartamentos()
@@ -98,21 +97,25 @@ export default function Drones() {
   }, [])
 
   const cargarDepartamentos = async () => {
-  console.log('Cargando departamentos...')
-  const { data, error } = await supabase
-    .from('departamentos')
-    .select('*')
-    .order('nombre')
-  
-  if (error) {
-    console.error('Error al cargar departamentos:', error)
-  } else {
-    console.log('Data (raw):', data)
-    console.log('Es array?', Array.isArray(data))
-    console.log('Cantidad:', data?.length)
-    setDepartamentos(data)
+    const { data, error } = await supabase
+      .from('departamentos')
+      .select('*')
+      .order('nombre')
+    if (!error) {
+      setDepartamentos(data)
+    }
   }
-}
+
+  const cargarDrones = async () => {
+    setLoading(true)
+    const { data, error } = await supabase
+      .from('drones')
+      .select('*')
+      .order('numero_serie')
+    if (!error) setDrones(data)
+    setLoading(false)
+  }
+
   // ============================================================
   // CRUD
   // ============================================================
@@ -146,7 +149,8 @@ export default function Drones() {
     const dataToSave = { 
       ...formData,
       packs_baterias: parseInt(formData.packs_baterias) || 0,
-      horas_vuelo_totales: parseFloat(formData.horas_vuelo_totales) || 0
+      horas_vuelo_totales: parseFloat(formData.horas_vuelo_totales) || 0,
+      ubicacion_actual: formData.municipio // asignamos el municipio como ubicación actual inicial
     }
 
     if (editing) {
@@ -317,7 +321,8 @@ export default function Drones() {
         adquisicion: row['Adquisición'] || row['adquisicion'] || '',
         entidad_adquisicion: row['Entidad Adquisición'] || row['entidad_adquisicion'] || '',
         estado: row['Estado'] || row['estado'] || 'ACL',
-        accesorios: row['Accesorios'] || row['accesorios'] || ''
+        accesorios: row['Accesorios'] || row['accesorios'] || '',
+        ubicacion_actual: row['Municipio'] || row['municipio'] || ''
       }
 
       if (!item.ente || !item.cuenta_contable || !item.numero_serie || !item.matricula) {
@@ -344,7 +349,7 @@ export default function Drones() {
   }
 
   // ============================================================
-  // FILTROS Y BÚSQUEDA
+  // FILTROS
   // ============================================================
   const dronesFiltrados = drones.filter(item => {
     const matchSearch =
@@ -372,7 +377,6 @@ export default function Drones() {
   return (
     <div className="min-h-screen bg-[#f1f5f9] p-4 md:p-6 lg:p-8">
 
-      {/* ==================== NOTIFICACIÓN ==================== */}
       {notificacion && (
         <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm w-full transition-all ${
           notificacion.tipo === 'success' ? 'bg-green-600 text-white' :
@@ -383,20 +387,15 @@ export default function Drones() {
         </div>
       )}
 
-      {/* ==================== HEADER ==================== */}
       <div className="max-w-7xl mx-auto">
         <div className="bg-[#0B2D5C] rounded-2xl shadow-xl p-6 md:p-8 text-white mb-8 border-b-4 border-[#D4AF37]">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
               <div className="flex items-center gap-3 mb-1">
                 <span className="text-3xl">🛸</span>
-                <h1 className="text-3xl md:text-4xl font-bold tracking-wide">
-                  Gestión de Drones
-                </h1>
+                <h1 className="text-3xl md:text-4xl font-bold tracking-wide">Gestión de Drones</h1>
               </div>
-              <p className="text-blue-200 text-sm md:text-base">
-                Administre la flota de aeronaves no tripuladas
-              </p>
+              <p className="text-blue-200 text-sm md:text-base">Administre la flota de aeronaves no tripuladas</p>
             </div>
             <div className="flex flex-wrap gap-2 mt-4 md:mt-0">
               <button
@@ -419,24 +418,17 @@ export default function Drones() {
           </div>
         </div>
 
-        {/* ==================== FORMULARIO ==================== */}
         {showForm && (
           <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-8 border-l-4 border-[#D4AF37]">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-[#0B2D5C]">
                 {editing ? '✏️ Editar Dron' : '➕ Nuevo Dron'}
               </h2>
-              <button
-                onClick={resetForm}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
-              >
-                ✕
-              </button>
+              <button onClick={resetForm} className="text-gray-500 hover:text-gray-700 text-2xl">✕</button>
             </div>
 
             <form onSubmit={guardarDron}>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-
                 {/* ENTE */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">ENTE <span className="text-red-500">*</span></label>
@@ -583,7 +575,13 @@ export default function Drones() {
                     onChange={(e) => setFormData({ ...formData, departamento: e.target.value })}
                   >
                     <option value="">Seleccione...</option>
-                    {departamentos.map(d => <option key={d.id} value={d.id}>{d.nombre}</option>)}
+                    {departamentos.length === 0 ? (
+                      <option disabled value="">No hay departamentos disponibles</option>
+                    ) : (
+                      departamentos.map(d => (
+                        <option key={d.id} value={d.nombre}>{d.nombre}</option>
+                      ))
+                    )}
                   </select>
                   {formErrors.departamento && <p className="text-red-500 text-xs mt-1">{formErrors.departamento}</p>}
                 </div>
@@ -726,7 +724,6 @@ export default function Drones() {
                     placeholder="Ej: Batería extra, Cargador rápido, Filtro ND, etc."
                   />
                 </div>
-
               </div>
 
               <div className="flex flex-wrap gap-3 mt-6 pt-4 border-t border-gray-200">
@@ -748,7 +745,6 @@ export default function Drones() {
           </div>
         )}
 
-        {/* ==================== BÚSQUEDA ==================== */}
         <div className="bg-white rounded-2xl shadow-lg p-4 md:p-6 mb-6 flex flex-col md:flex-row md:items-center gap-4">
           <div className="flex-1">
             <input
@@ -764,7 +760,6 @@ export default function Drones() {
           </div>
         </div>
 
-        {/* ==================== TABLA ==================== */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -781,9 +776,7 @@ export default function Drones() {
               <tbody className="divide-y divide-gray-200">
                 {dronesFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
-                      No hay drones registrados. ¡Agrega uno nuevo!
-                    </td>
+                    <td colSpan="6" className="px-4 py-8 text-center text-gray-500">No hay drones registrados. ¡Agrega uno nuevo!</td>
                   </tr>
                 ) : (
                   dronesFiltrados.map((item) => (
@@ -803,20 +796,8 @@ export default function Drones() {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex flex-wrap justify-center gap-1">
-                          <button
-                            onClick={() => editarDron(item)}
-                            className="text-[#0B2D5C] hover:text-[#D4AF37] p-1 transition"
-                            title="Editar"
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            onClick={() => eliminarDron(item.id)}
-                            className="text-red-600 hover:text-red-800 p-1 transition"
-                            title="Eliminar"
-                          >
-                            🗑️
-                          </button>
+                          <button onClick={() => editarDron(item)} className="text-[#0B2D5C] hover:text-[#D4AF37] p-1 transition" title="Editar">✏️</button>
+                          <button onClick={() => eliminarDron(item.id)} className="text-red-600 hover:text-red-800 p-1 transition" title="Eliminar">🗑️</button>
                         </div>
                       </td>
                     </tr>
@@ -830,14 +811,11 @@ export default function Drones() {
           </div>
         </div>
 
-        {/* ==================== MODAL EXCEL ==================== */}
         {showExcelModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="sticky top-0 bg-[#0B2D5C] text-white p-4 flex justify-between items-center rounded-t-2xl">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <span>📊</span> Carga Masiva de Drones
-                </h2>
+                <h2 className="text-xl font-bold flex items-center gap-2"><span>📊</span> Carga Masiva de Drones</h2>
                 <button
                   onClick={() => {
                     setShowExcelModal(false)
@@ -850,15 +828,12 @@ export default function Drones() {
                   ✕
                 </button>
               </div>
-
               <div className="p-6">
                 <div className="bg-[#f0f4ff] border border-[#D4AF37] rounded-lg p-4 mb-6">
                   <h3 className="font-semibold text-[#0B2D5C]">📋 Instrucciones</h3>
                   <ul className="text-sm text-gray-700 list-disc pl-4 mt-2 space-y-1">
                     <li>El archivo debe ser <strong>.xlsx</strong> o <strong>.xls</strong></li>
                     <li>Columnas esperadas: <strong>ENTE, Cuenta Contable, Número Inventario, Número Serie, Marca, Modelo, Región, Unidad, Especialidad, Departamento, Municipio, Clase, Clase2, Matrícula, Packs Baterías, Horas Vuelo, Seguro Póliza, Adquisición, Entidad Adquisición, Estado, Accesorios</strong></li>
-                    <li>Los campos marcados con * son obligatorios</li>
-                    <li>Los valores de Estado deben ser: ACC, EVA, PAR, MMP, AMO, AMR, AMI, AMP, NLA, AVP, LRA, LRM, ACL, APB, BAJ</li>
                     <li>
                       <button
                         onClick={descargarPlantillaExcel}
@@ -881,9 +856,7 @@ export default function Drones() {
                   />
                   <label htmlFor="excelFileInput" className="cursor-pointer">
                     <div className="text-4xl mb-2">📁</div>
-                    <p className="text-gray-600">
-                      {excelFile ? excelFile.name : 'Haz clic para seleccionar un archivo Excel'}
-                    </p>
+                    <p className="text-gray-600">{excelFile ? excelFile.name : 'Haz clic para seleccionar un archivo Excel'}</p>
                     <p className="text-xs text-gray-400 mt-1">.xlsx o .xls</p>
                   </label>
                 </div>
@@ -894,9 +867,7 @@ export default function Drones() {
                       <thead className="bg-gray-50 sticky top-0">
                         <tr>
                           {Object.keys(excelData[0] || {}).map((key) => (
-                            <th key={key} className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase">
-                              {key}
-                            </th>
+                            <th key={key} className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase">{key}</th>
                           ))}
                         </tr>
                       </thead>
@@ -951,9 +922,6 @@ export default function Drones() {
   )
 }
 
-// ============================================================
-// FUNCIÓN PARA DESCARGAR PLANTILLA EXCEL
-// ============================================================
 function descargarPlantillaExcel() {
   const plantilla = [
     {
