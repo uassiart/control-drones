@@ -30,7 +30,7 @@ const REGIONES = Object.keys(REGIONES_UNIDADES)
 const MARCAS_MODELOS = {
   'DJI': ['Matrice 200 Series', 'Matrice 300 RTK', 'Matrice 350 RTK', 'Matrice 300', 'Matrice 30', 'Inspire 2', 'Mavic 2 Enterprise Advance', 'Matrice 4T', 'Matrice 4TD', 'Mavic 3T'],
   'SKYDIO': ['Skydio Duo', 'Skydio X2'],
-  'HYLIO': [],  // libre
+  'HYLIO': [],
   'Quantum-Systems': ['Vector']
 }
 
@@ -43,7 +43,6 @@ const CLASE2_OPCIONES = ['IA', 'IB', 'IC']
 const ENTE_OPCIONES = ['PONAL', 'INL']
 const ESPECIALIDADES = ['MNVCC', 'ESPECIALIDAD']
 
-// Departamentos y municipios (cargaremos desde Supabase)
 // ============================================================
 // COMPONENTE PRINCIPAL
 // ============================================================
@@ -63,8 +62,6 @@ export default function Drones() {
 
   // Catálogos
   const [departamentos, setDepartamentos] = useState([])
-  const [municipios, setMunicipios] = useState([])
-  const [municipiosFiltrados, setMunicipiosFiltrados] = useState([])
 
   const [formData, setFormData] = useState({
     ente: '',
@@ -77,7 +74,7 @@ export default function Drones() {
     unidad: '',
     especialidad: '',
     departamento: '',
-    municipio: '',
+    municipio: '',        // ahora es texto libre
     clase: '',
     clase2: '',
     matricula: '',
@@ -97,18 +94,12 @@ export default function Drones() {
   // ============================================================
   useEffect(() => {
     cargarDepartamentos()
-    cargarMunicipios()
     cargarDrones()
   }, [])
 
   const cargarDepartamentos = async () => {
     const { data, error } = await supabase.from('departamentos').select('*').order('nombre')
     if (!error) setDepartamentos(data)
-  }
-
-  const cargarMunicipios = async () => {
-    const { data, error } = await supabase.from('municipios').select('*').order('nombre')
-    if (!error) setMunicipios(data)
   }
 
   const cargarDrones = async () => {
@@ -139,7 +130,7 @@ export default function Drones() {
     if (!formData.unidad) errors.unidad = 'Seleccione unidad'
     if (!formData.especialidad) errors.especialidad = 'Seleccione especialidad'
     if (!formData.departamento) errors.departamento = 'Seleccione departamento'
-    if (!formData.municipio) errors.municipio = 'Seleccione municipio'
+    if (!formData.municipio.trim()) errors.municipio = 'El municipio es obligatorio'
     if (!formData.clase) errors.clase = 'Seleccione clase'
     if (!formData.clase2) errors.clase2 = 'Seleccione clase2'
     if (!formData.matricula.trim()) errors.matricula = 'Matrícula es obligatoria'
@@ -222,11 +213,6 @@ export default function Drones() {
       estado: item.estado || 'ACL',
       accesorios: item.accesorios || ''
     })
-    // Filtrar municipios según departamento seleccionado
-    if (item.departamento) {
-      const filtrados = municipios.filter(m => m.departamento_id === item.departamento)
-      setMunicipiosFiltrados(filtrados)
-    }
     setShowForm(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -258,7 +244,6 @@ export default function Drones() {
       accesorios: ''
     })
     setFormErrors({})
-    setMunicipiosFiltrados([])
   }
 
   // ============================================================
@@ -334,7 +319,6 @@ export default function Drones() {
         accesorios: row['Accesorios'] || row['accesorios'] || ''
       }
 
-      // Validar campos obligatorios
       if (!item.ente || !item.cuenta_contable || !item.numero_serie || !item.matricula) {
         errorCount++
         continue
@@ -398,7 +382,7 @@ export default function Drones() {
         </div>
       )}
 
-      {/* ==================== HEADER INSTITUCIONAL ==================== */}
+      {/* ==================== HEADER ==================== */}
       <div className="max-w-7xl mx-auto">
         <div className="bg-[#0B2D5C] rounded-2xl shadow-xl p-6 md:p-8 text-white mb-8 border-b-4 border-[#D4AF37]">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -595,12 +579,7 @@ export default function Drones() {
                   <select
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent ${formErrors.departamento ? 'border-red-500' : 'border-gray-300'}`}
                     value={formData.departamento}
-                    onChange={(e) => {
-                      const deptoId = e.target.value
-                      setFormData({ ...formData, departamento: deptoId, municipio: '' })
-                      const filtrados = municipios.filter(m => m.departamento_id === deptoId)
-                      setMunicipiosFiltrados(filtrados)
-                    }}
+                    onChange={(e) => setFormData({ ...formData, departamento: e.target.value })}
                   >
                     <option value="">Seleccione...</option>
                     {departamentos.map(d => <option key={d.id} value={d.id}>{d.nombre}</option>)}
@@ -608,18 +587,16 @@ export default function Drones() {
                   {formErrors.departamento && <p className="text-red-500 text-xs mt-1">{formErrors.departamento}</p>}
                 </div>
 
-                {/* Municipio */}
+                {/* Municipio (texto libre) */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Municipio <span className="text-red-500">*</span></label>
-                  <select
+                  <input
+                    type="text"
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent ${formErrors.municipio ? 'border-red-500' : 'border-gray-300'}`}
                     value={formData.municipio}
                     onChange={(e) => setFormData({ ...formData, municipio: e.target.value })}
-                    disabled={!formData.departamento}
-                  >
-                    <option value="">Seleccione...</option>
-                    {municipiosFiltrados.map(m => <option key={m.id} value={m.id}>{m.nombre}</option>)}
-                  </select>
+                    placeholder="Escriba el municipio"
+                  />
                   {formErrors.municipio && <p className="text-red-500 text-xs mt-1">{formErrors.municipio}</p>}
                 </div>
 
