@@ -98,25 +98,21 @@ export default function Drones() {
   }, [])
 
   const cargarDepartamentos = async () => {
-  const { data, error } = await supabase.from('departamentos').select('*').order('nombre')
+  console.log('Cargando departamentos...')
+  const { data, error } = await supabase
+    .from('departamentos')
+    .select('*')
+    .order('nombre')
+  
   if (error) {
-    console.error('Error cargando departamentos:', error)
+    console.error('Error al cargar departamentos:', error)
   } else {
-    console.log('Departamentos cargados:', data)
+    console.log('Data (raw):', data)
+    console.log('Es array?', Array.isArray(data))
+    console.log('Cantidad:', data?.length)
     setDepartamentos(data)
   }
 }
-
-  const cargarDrones = async () => {
-    setLoading(true)
-    const { data, error } = await supabase
-      .from('drones')
-      .select('*')
-      .order('numero_serie')
-    if (!error) setDrones(data)
-    setLoading(false)
-  }
-
   // ============================================================
   // CRUD
   // ============================================================
