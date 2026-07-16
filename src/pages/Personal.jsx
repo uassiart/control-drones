@@ -10,13 +10,14 @@ export default function Personal() {
   const { user } = useAuth()
 
   // Estado del formulario
-  const [formData, setFormData] = useState({
-    nombre: '',
-    cedula: '',
-    email: '',
-    es_jefe: false,
-    activo: true
-  })
+const [formData, setFormData] = useState({
+  nombre: '',
+  cedula: '',
+  email: '',
+  grado: '',        // <-- NUEVO CAMPO
+  es_jefe: false,
+  activo: true
+})
 
   // Cargar personal
   useEffect(() => {
@@ -89,16 +90,17 @@ export default function Personal() {
 
   // Editar (cargar datos en el formulario)
   const editarPersonal = (item) => {
-    setEditing(item.id)
-    setFormData({
-      nombre: item.nombre,
-      cedula: item.cedula,
-      email: item.email,
-      es_jefe: item.es_jefe,
-      activo: item.activo
-    })
-    setShowForm(true)
-  }
+  setEditing(item.id)
+  setFormData({
+    grado: item.grado || '',     // <-- NUEVO
+    nombre: item.nombre,
+    cedula: item.cedula,
+    email: item.email,
+    es_jefe: item.es_jefe,
+    activo: item.activo
+  })
+  setShowForm(true)
+}
 
   if (loading) return <div className="p-8 text-center">Cargando personal...</div>
 
@@ -126,6 +128,16 @@ export default function Personal() {
           </h2>
           <form onSubmit={guardarPersonal}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+  <label className="block text-sm font-medium mb-1">Grado</label>
+  <input
+    type="text"
+    className="w-full px-3 py-2 border rounded"
+    value={formData.grado}
+    onChange={(e) => setFormData({ ...formData, grado: e.target.value })}
+    placeholder="Ej: Mayor, Capitán, Teniente, etc."
+  />
+</div>
               <div>
                 <label className="block text-sm font-medium mb-1">Nombre</label>
                 <input
@@ -199,6 +211,7 @@ export default function Personal() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Grado</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cédula</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
@@ -215,6 +228,7 @@ export default function Personal() {
             ) : (
               personal.map((item) => (
                 <tr key={item.id}>
+                <td className="px-6 py-4">{item.grado || '-'}</td>
                   <td className="px-6 py-4">{item.nombre}</td>
                   <td className="px-6 py-4">{item.cedula}</td>
                   <td className="px-6 py-4">{item.email}</td>
